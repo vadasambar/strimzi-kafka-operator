@@ -1115,7 +1115,7 @@ class KafkaST extends MessagingBaseST {
 
         // check rolling update messages in CO log
         coLog = kubeClient().logs(coPodName);
-        assertThat(coLog, containsString("Rolling Zookeeper pod " + zookeeperClusterName(CLUSTER_NAME) + "-0" + " to manual rolling update"));
+        assertThat(coLog, containsString("Rolling Zookeeper pod " + zookeeperClusterName(CLUSTER_NAME) + "-0" + " due to manual rolling update"));
     }
 
     @Test
