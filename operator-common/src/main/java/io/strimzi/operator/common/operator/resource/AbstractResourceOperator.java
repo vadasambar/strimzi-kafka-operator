@@ -58,7 +58,7 @@ public abstract class AbstractResourceOperator<C extends KubernetesClient,
      */
     public AbstractResourceOperator(Vertx vertx, C client, String resourceKind) {
         this.vertx = vertx;
-        this.resourceSupport = new ResourceSupport(vertx, operationTimeoutMs);
+        this.resourceSupport = new ResourceSupport(vertx);
         this.client = client;
         this.resourceKind = resourceKind;
     }
@@ -150,6 +150,7 @@ public abstract class AbstractResourceOperator<C extends KubernetesClient,
     protected Future<ReconcileResult<T>> internalDelete(String namespace, String name, boolean cascading) {
         R resourceOp = operation().inNamespace(namespace).withName(name);
         Future<ReconcileResult<T>> watchForDeleteFuture = resourceSupport.selfClosingWatch(resourceOp,
+                deleteTimeoutMs(),
             "observe deletion of " + resourceKind + " " + namespace + "/" + name,
             (action, resource) -> {
                 if (action == Watcher.Action.DELETED) {
@@ -161,6 +162,10 @@ public abstract class AbstractResourceOperator<C extends KubernetesClient,
             });
         Future<Void> deleteFuture = resourceSupport.deleteAsync(resourceOp.cascading(cascading));
         return CompositeFuture.join(watchForDeleteFuture, deleteFuture).map(ReconcileResult.deleted());
+    }
+
+    protected long deleteTimeoutMs() {
+        return 120_000;
     }
 
     /**
