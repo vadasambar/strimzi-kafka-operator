@@ -629,6 +629,7 @@ public class MockKube {
             @Override
             protected void nameScopedMocks(Resource<PersistentVolumeClaim, DoneablePersistentVolumeClaim> resource, String resourceName) {
                 mockGet(resourceName, resource);
+                mockWatch(resourceName, resource);
                 mockCreate(resourceName, resource);
                 mockCascading(resource);
                 mockPatch(resourceName, resource);
@@ -718,6 +719,7 @@ public class MockKube {
             @Override
             protected void nameScopedMocks(Resource<PodDisruptionBudget, DoneablePodDisruptionBudget> resource, String resourceName) {
                 mockGet(resourceName, resource);
+                mockWatch(resourceName, resource);
                 mockCreate(resourceName, resource);
                 mockCascading(resource);
                 mockPatch(resourceName, resource);
