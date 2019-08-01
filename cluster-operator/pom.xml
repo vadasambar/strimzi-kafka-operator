@@ -143,7 +143,6 @@
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.12</artifactId>
             <scope>test</scope>
->>>>>>> wip
         </dependency>
     </dependencies>
 
