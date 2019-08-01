@@ -114,45 +114,6 @@ public abstract class StatefulSetOperator extends AbstractScalableResourceOperat
 
     public abstract Future<Void> maybeRollingUpdate(StatefulSet ss, Predicate<Pod> podNeedsRestart, Secret clusterCaSecret, Secret coKeySecret);
 
-    public Future<Void> maybeDeletePodAndPvc(StatefulSet ss) {
-        String namespace = ss.getMetadata().getNamespace();
-        String name = ss.getMetadata().getName();
-        final int replicas = ss.getSpec().getReplicas();
-        log.debug("Considering manual deletion and restart of pods for {}/{}", namespace, name);
-        Future<Void> f = Future.succeededFuture();
-        for (int i = 0; i < replicas; i++) {
-            String podName = name + "-" + i;
-            Pod pod = podOperations.get(namespace, podName);
-
-            if (pod != null) {
-                if (Annotations.booleanAnnotation(pod, ANNO_STRIMZI_IO_DELETE_POD_AND_PVC,
-                        false, ANNO_OP_STRIMZI_IO_DELETE_POD_AND_PVC)) {
-
-                    f = f.compose(ignored -> {
-                        Map<String, String> ssLabels = ss.getMetadata().getLabels();
-                        // get all the PVCs created for a SS from the claim template
-                        Labels pvcSelector =
-                                Labels.forCluster(ssLabels.get(Labels.STRIMZI_CLUSTER_LABEL))
-                                        .withKind(ssLabels.get(Labels.STRIMZI_KIND_LABEL))
-                                        .withName(name);
-                        List<PersistentVolumeClaim> pvcs = pvcOperations.list(namespace, pvcSelector);
-                        List<Future> result = new ArrayList<>();
-                        for (PersistentVolumeClaim pvc: pvcs) {
-                            String pvcName = pvc.getMetadata().getName();
-                            // filtering on the right PVC related to the pod to delete
-                            if (pvcName.endsWith(podName)) {
-                                result.add(deletePvc(ss, pvcName));
-                            }
-                        }
-                        return CompositeFuture.join(result);
-                    }).compose(ignored -> maybeRestartPod(ss, podName, p -> true));
-
-                }
-            }
-        }
-        return f;
-    }
-
     public Future<Void> deletePvc(StatefulSet ss, String pvcName) {
         String namespace = ss.getMetadata().getNamespace();
         Future<Void> f = Future.future();

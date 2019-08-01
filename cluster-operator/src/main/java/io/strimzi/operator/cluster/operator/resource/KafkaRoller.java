@@ -281,7 +281,7 @@ public class KafkaRoller {
                     f.fail(e);
                 }
             },
-            result.completer());
+            result);
         return result;
     }
 
@@ -476,7 +476,7 @@ public class KafkaRoller {
             log.debug("Proceeding with pod {}", monitor.podId);
             return Future.succeededFuture(monitor);
         } else {
-            Future f = Future.future();
+            Future<Monitor> f = Future.future();
             log.debug("Waiting {}ms before proceeding with pod {}", delay, monitor.podId);
             vertx.setTimer(delay, timerId -> {
                 log.debug("Proceeding with pod {}", monitor.podId);
